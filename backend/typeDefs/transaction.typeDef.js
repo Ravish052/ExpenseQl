@@ -21,7 +21,7 @@ const transactionTypeDef = `#graphql
         deleteTransaction (transactionId:ID!): Transaction!
     }
 
-    type createTransactionInput {
+    input createTransactionInput {
         description : String!,
         paymentType : String!,
         category : String!,
@@ -30,7 +30,7 @@ const transactionTypeDef = `#graphql
         date : String!,
     }
 
-    type updateTransactionInput {
+    input updateTransactionInput {
         description : String,
         paymentType : String,
         category : String,
