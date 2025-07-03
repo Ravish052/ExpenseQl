@@ -39,25 +39,55 @@ const userResolver = {
             }
         },
 
-        login : async(_ , { input }, context) => {
+        login: async (_, { input }, context) => {
             try {
-                const {userName, password} = input;
-//const { }
+                const { userName, password } = input;
+                const { user } = await context.authenticate("graphql-local", { userName, password });
 
+                await context.login(user);
+                return user;
 
-            }catch (err) {
+            } catch (err) {
                 console.error("Error in login: ", err);
+                throw new Error(err.message || "Internal server error");
+            }
+        },
+        logout: async (_, __, context) => {
+            try {
+                await context.logout();
+                res.session.destroy((err) => {
+                    if (err) {
+                        throw new Error(err.message || "Internal server error");
+                    }
+                })
+                res.clearCookie("connect.sid");
+                return { message: "Logout successful" };
+            } catch (err) {
+                console.error("Error in logout: ", err);
                 throw new Error(err.message || "Internal server error");
             }
         }
     },
 
     Query: {
-        users: () => {
-            return users;
+        authUser: async (_, __, context) => {
+            try {
+                const user = await context.getUser();
+                return user;
+            } catch (err) {
+                console.error("Error in authUser: ", err);
+                throw new Error(err.message || "Internal server error");
+            }
         },
-        user: (_, { userId },) => {
-            return users.find(user => user._id === userId);
+
+        user: async (_, { userId }) => {
+            try {
+                const user = await User.findById(userId);
+                return user;
+            } catch (err) {
+                console.error("Error in user: ", err);
+                throw new Error(err.message || "Internal server error");
+            }
         }
     },
 
