@@ -1,4 +1,4 @@
-import { users } from '../dummyData/data.js';
+
 import bcrypt from "bcryptjs";
 import User from '../models/user.model.js';
 
@@ -7,11 +7,11 @@ const userResolver = {
         signUp: async (_, { input }, context) => {
             try {
                 const { userName, name, password, gender } = input
-                if (!userName || !name || !password || gender) {
+                if (!userName || !name || !password || !gender) {
                     throw new Error('All fields are required');
                 }
 
-                const existingUser = await users.findOne({ userName });
+                const existingUser = await User.findOne({ userName });
                 if (existingUser) {
                     throw new Error('User already exists');
                 }
@@ -19,10 +19,10 @@ const userResolver = {
                 const salt = await bcrypt.genSalt(10);
                 const hashedPassword = await bcrypt.hash(password, salt);
 
-                const boyProfilePic = `https://avatar.iran.liara.run/public/boy?username=${username}`;
-                const girlProfilePic = `https://avatar.iran.liara.run/public/girl?username=${username}`;
+                const boyProfilePic = `https://avatar.iran.liara.run/public/boy?userName=${userName}`;
+                const girlProfilePic = `https://avatar.iran.liara.run/public/girl?userName=${userName}`;
 
-                const newuser = new User({
+                const newUser = new User({
                     userName,
                     name,
                     password: hashedPassword,
@@ -30,7 +30,7 @@ const userResolver = {
                     profilePicture: gender === "male" ? boyProfilePic : girlProfilePic,
                 })
 
-                await newuser.save();
+                await newUser.save();
                 await context.login(newUser);
                 return newUser;
             } catch (err) {
@@ -40,6 +40,7 @@ const userResolver = {
         },
 
         login: async (_, { input }, context) => {
+            console.log("Logging in user", input);
             try {
                 const { userName, password } = input;
                 const { user } = await context.authenticate("graphql-local", { userName, password });
@@ -52,15 +53,17 @@ const userResolver = {
                 throw new Error(err.message || "Internal server error");
             }
         },
+        
         logout: async (_, __, context) => {
+            console.log("Logging out user");
             try {
                 await context.logout();
-                res.session.destroy((err) => {
+                context.req.session.destroy((err) => {
                     if (err) {
                         throw new Error(err.message || "Internal server error");
                     }
                 })
-                res.clearCookie("connect.sid");
+                context.res.clearCookie("connect.sid");
                 return { message: "Logout successful" };
             } catch (err) {
                 console.error("Error in logout: ", err);
