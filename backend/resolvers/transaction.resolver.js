@@ -1,13 +1,16 @@
+import Transaction from "../models/transaction.model.js";
+import User from "../models/user.model.js";
+
 const transactionResolver = {
     Query: {
         transactions: async (_, __, context) => {
             try {
-                if (!context.user) {
+                if (!context.getUser) {
                     throw new Error("Unauthorized access");
                 }
                 const userId = await context.getUser()._id
 
-                const transactions = await context.db.Transaction.find({ userId }).sort({ createdAt: -1 });
+                const transactions = await Transaction.find({ userId }).sort({ createdAt: -1 });
                 return transactions;
             } catch (err) {
                 console.error("Error in transactions query: ", err);
@@ -16,8 +19,9 @@ const transactionResolver = {
         },
 
         transaction: async (_, { transactionId },) => {
+            console.log("transactionId received in resolver:", transactionId);
             try {
-                const transaction = await transaction.findById(transactionId);
+                const transaction = await Transaction.findById(transactionId);
                 return transaction;
             } catch (err) {
                 console.error("Error in transaction query: ", err);
@@ -27,6 +31,7 @@ const transactionResolver = {
     },
     Mutation: {
         createTransaction: async (_, { input }, context) => {
+            console.log("Input received in createTransaction:", input);
             try {
                 const newTransaction = new Transaction({
                     ...input,
@@ -52,7 +57,7 @@ const transactionResolver = {
                 throw new Error(err.message || "Internal server error");
             }
         },
-        deleteTransaction: async (parent, args, context) => { 
+        deleteTransaction: async (_, { transactionId }) => { 
             try {
                 const deletedTransaction = await Transaction.findByIdAndDelete(transactionId)
                     return deletedTransaction;
