@@ -17,26 +17,19 @@ export const GET_TRANSACTIONS = gql`
 export const GET_TRANSACTION = gql`
    query GetTransaction($transactionId: ID!) {
 	   transaction(transactionId: $transactionId) {
-		_id
-        userId
-        description
-        paymentType
-        category
-        amount
-        location
-        date
-		#    _id
-		#    description
-		#    paymentType
-		#    category
-		#    amount
-		#    location
-		#    date
-		#    user {
-		# 	   name
-		# 	   username
-		# 	   profilePicture
-		#    }
+		
+		   _id
+		   description
+		   paymentType
+		   category
+		   amount
+		   location
+		   date
+		   user {
+			   name
+			   username
+			   profilePicture
+		   }
 	   }
    }
 `;

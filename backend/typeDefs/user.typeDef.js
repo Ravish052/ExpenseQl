@@ -5,6 +5,7 @@ const userTypeDef = `#graphql
         name : String!,
         profilePicture : String,
         gender : String!,
+        transactions : [Transaction!]
     }
 
     type Query {

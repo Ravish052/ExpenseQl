@@ -27,7 +27,26 @@ const transactionResolver = {
                 console.error("Error in transaction query: ", err);
                 throw new Error(err.message || "Internal server error");
             }
-        }
+        },
+
+        categoryStatistics: async (_, __, context) => {
+            if (!context.getUser) {
+                throw new Error("Unauthorized access");
+            }
+            const userId = await context.getUser()._id
+            const transactions = await Transaction.find({ userId });
+            const categoryMap = {}
+
+            transactions.forEach(transaction => {
+                if (!categoryMap[transaction.category]) {
+                    categoryMap[transaction.category] = 0;
+                }
+                categoryMap[transaction.category] += transaction.amount;
+
+            })
+
+            return Object.entries(categoryMap).map(([category, totalAmount]) => ({ category, totalAmount }));
+        },
     },
     Mutation: {
         createTransaction: async (_, { input }, context) => {
@@ -57,16 +76,30 @@ const transactionResolver = {
                 throw new Error(err.message || "Internal server error");
             }
         },
-        deleteTransaction: async (_, { transactionId }) => { 
+        deleteTransaction: async (_, { transactionId }) => {
             try {
                 const deletedTransaction = await Transaction.findByIdAndDelete(transactionId)
-                    return deletedTransaction;
+                return deletedTransaction;
             } catch (err) {
                 console.error("Error in updateTransaction mutation: ", err);
                 throw new Error(err.message || "Internal server error");
             }
         }
+    },
+
+    Transaction :{
+        user: async(parent) => {
+            const userId = parent.userId;  // parent is the Transaction object
+
+            try{
+                const user = await user.findById(userId)
+                return user;
+            }catch(error){
+                console.log("error in Transaction user:",error);
+                throw new Error(error.message || "Internal server error");
+            }
+        }
     }
-}
+};
 
 export default transactionResolver;
